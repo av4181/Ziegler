@@ -7,17 +7,17 @@
   // 1. INPUT STATE
   // ===================================================================================
   // Reactive object to hold all input values for the model.
-  // Initialized with realistic default values based on literature research.
+  // Initialized with realistic default values based on the provided PE loop reactor conditions.
   let inputs: ZieglerModelInputs = {
     // --- Main operational parameters (controlled by sliders) ---
-    hydrogen: 0.01,       // mol/L
-    ethylene: 0.2,        // mol/L
-    hexene: 0.1,          // mol/L
-    catalyst: 0.0001,     // mol/L (S)
+    temperature: 363.15,  // Kelvin (90 °C)
+    hydrogen: 0.005,      // mol/L (Target: 0-0.01)
+    ethylene: 0.08,       // mol/L (Target: 0-0.1)
+    hexene: 0.02,         // mol/L (Target: 0-0.04)
+    catalyst: 0.0001,     // mol/L (S) - Using previous default
     cr6: 0,               // mol/L (S1, often starts at 0)
-    cocatalyst: 0.01,     // mol/L (c)
-    volume: 1.0,          // Liters
-    temperature: 353.15,  // Kelvin (80 °C)
+    cocatalyst: 0.01,     // mol/L (c) - Using previous default
+    volume: 100000,       // Liters (100 m^3)
     reactorFlag: 1,       // Reactor type 1
 
     // --- State variables (concentrations of species in the reactor) ---
@@ -65,19 +65,19 @@
   // A helper to format numbers for display
   function formatNumber(num: number | undefined | null) {
     if (num === undefined || num === null) return 'N/A';
-    if (Math.abs(num) < 1e-3 && num !== 0) {
-      return num.toExponential(4);
+    if (Math.abs(num) < 1e-4 && num !== 0) {
+      return num.toExponential(3);
     }
-    return num.toFixed(4);
+    return num.toFixed(5);
   }
 </script>
 
-<main class="bg-slate-50 font-sans p-4 sm:p-6 lg:p-8">
+<main class="bg-slate-50 font-sans p-4 sm:p-6 lg:p-8 min-h-screen">
   <div class="max-w-7xl mx-auto">
     <header class="mb-8">
-      <h1 class="text-3xl font-bold text-slate-800">Ziegler-Natta Kinetics Simulator</h1>
+      <h1 class="text-3xl font-bold text-slate-800">PE Loop Reactor Kinetics Simulator</h1>
       <p class="text-slate-600 mt-1">
-        An interactive tool to explore the reaction kinetics based on the provided model.
+        Interactive tool to explore reaction kinetics. Ranges based on typical PE loop reactor conditions.
       </p>
     </header>
 
@@ -91,32 +91,32 @@
           <div>
             <label for="temperature" class="flex justify-between items-center text-sm font-medium text-slate-700">
               Temperature (K)
-              <span class="text-indigo-600 font-bold">{inputs.temperature.toFixed(2)}</span>
+              <span class="text-indigo-600 font-bold">{inputs.temperature.toFixed(2)} K / {(inputs.temperature - 273.15).toFixed(1)} °C</span>
             </label>
             <input
                     type="range"
                     id="temperature"
                     bind:value={inputs.temperature}
-                    min="333.15"
-                    max="363.15"
+                    min={273.15 + 80}
+                    max={273.15 + 110}
                     step="0.1"
                     class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
             />
           </div>
 
-          <!-- Slider for Volume -->
+          <!-- Slider for Reactor Volume -->
           <div>
             <label for="volume" class="flex justify-between items-center text-sm font-medium text-slate-700">
-              Volume (L)
-              <span class="text-indigo-600 font-bold">{inputs.volume.toFixed(2)}</span>
+              Volume (m³)
+              <span class="text-indigo-600 font-bold">{(inputs.volume / 1000).toFixed(1)}</span>
             </label>
             <input
                     type="range"
                     id="volume"
                     bind:value={inputs.volume}
-                    min="0.5"
-                    max="10"
-                    step="0.1"
+                    min="50000"
+                    max="150000"
+                    step="1000"
                     class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
             />
           </div>
@@ -132,8 +132,8 @@
                     id="hydrogen"
                     bind:value={inputs.hydrogen}
                     min="0"
-                    max="0.1"
-                    step="0.001"
+                    max="0.01"
+                    step="0.0001"
                     class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
             />
           </div>
@@ -142,15 +142,32 @@
           <div>
             <label for="ethylene" class="flex justify-between items-center text-sm font-medium text-slate-700">
               Ethylene (mol/L)
-              <span class="text-indigo-600 font-bold">{inputs.ethylene.toFixed(3)}</span>
+              <span class="text-indigo-600 font-bold">{formatNumber(inputs.ethylene)}</span>
             </label>
             <input
                     type="range"
                     id="ethylene"
                     bind:value={inputs.ethylene}
-                    min="0.01"
-                    max="0.5"
-                    step="0.005"
+                    min="0"
+                    max="0.1"
+                    step="0.001"
+                    class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
+            />
+          </div>
+
+          <!-- Slider for Hexene -->
+          <div>
+            <label for="hexene" class="flex justify-between items-center text-sm font-medium text-slate-700">
+              Hexene (mol/L)
+              <span class="text-indigo-600 font-bold">{formatNumber(inputs.hexene)}</span>
+            </label>
+            <input
+                    type="range"
+                    id="hexene"
+                    bind:value={inputs.hexene}
+                    min="0"
+                    max="0.04"
+                    step="0.0005"
                     class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
             />
           </div>
@@ -190,7 +207,7 @@
             </div>
 
             <!-- Detailed Rates -->
-            <h3 class="col-span-full text-lg font-semibold text-slate-600 mt-6 mb-2">Detailed Moment & Site Rates</h3>
+            <h3 class="col-span-full text-lg font-semibold text-slate-600 mt-6 mb-2">Detailed Moment & Site Rates (mol/h)</h3>
 
             <div class="col-span-full grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
               <p><span class="font-semibold">d[Y0_1]/dt:</span> {formatNumber(outputs.rateLivingPolymerMoment0_y0_1)}</p>

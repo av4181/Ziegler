@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", // Of minstens "ES2015"
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "lib": ["ESNext", "DOM"] // Zorg ervoor dat "ESNext" of "ES2015" hier staat
+  },
+  "include": ["src"]
+}
